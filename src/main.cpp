@@ -9,21 +9,26 @@ namespace fs = std::filesystem;
 
 int main() {
     std::string path = "/home/flashonfire/CLionProjects/Rashnawa/src/";
+    std::vector<std::string> blacklist = {
+        "Events.h", "Defines.h", "StringHasher.h", "TriggerBox.h", "OptionDataStructs.h", "EntityBehaviorType.h",
+        "Entities.h", "Screens.h", "OptionsCategories.h", "Keybinds.h"
+
+    };
+
 
     std::vector<std::string> filenames;
 
     int i = 0;
     for (const auto& entry: fs::recursive_directory_iterator(path)) {
-        //if (i > 2)
-            //continue;
         if (entry.is_regular_file() && entry.path().has_extension() && entry.path().extension() == ".h") {
-            std::cout << "Adding " << entry.path().filename() << "\n";
-            filenames.push_back(entry.path());
-            i++;
+            if (std::find(blacklist.begin(), blacklist.end(), entry.path().filename()) == blacklist.end()) {
+                std::cout << "Adding " << entry.path().filename() << "\n";
+                filenames.push_back(entry.path());
+            } else {
+                std::cout << "Not adding blacklisted " << entry.path().filename() << std::endl;
+            }
         }
     }
-
-    //filenames.emplace_back("/home/flashonfire/CLionProjects/Rashnawa/src/Game.h");
 
     auto diagram = ClassDiagram(filenames);
 

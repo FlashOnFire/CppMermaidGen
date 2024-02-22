@@ -31,6 +31,7 @@ ClassDiagram::ClassDiagram(std::vector<std::string> files) {
             }
 
             replace_all(str, "final", "");
+            replace_all(str, "explicit", "");
             replace_all(str, "  ", " ");
 
             trim(str);
@@ -67,7 +68,7 @@ ClassDiagram::ClassDiagram(std::vector<std::string> files) {
 
             if (str.at(str.length() - 1) == ';') {
                 str = str.substr(0, str.length() - 1);
-            } else if (str.at(str.length() - 1) != '{') {
+            } else if (str.at(str.length() - 1) != '{' && str.at(str.length() - 1) != ':' ) {
                 line_not_ended = true;
                 continue;
             }

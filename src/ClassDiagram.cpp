@@ -26,6 +26,10 @@ ClassDiagram::ClassDiagram(std::vector<std::string> files) {
                 line_not_ended = false;
             }
 
+            if (str.find("namespace") != std::string::npos) {
+                continue;
+            }
+
             replace_all(str, "final", "");
             replace_all(str, "  ", " ");
 

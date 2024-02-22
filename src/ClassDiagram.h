@@ -4,6 +4,7 @@
 #include <regex>
 
 #include "Class.h"
+#include "Link.h"
 
 const std::regex class_regex("(?:class|struct) (.*) \\{");
 const std::regex function_return_regex("(.*) (.*\\(\\).*)");
@@ -15,6 +16,7 @@ public:
     [[nodiscard]] std::string generateMermaid() const;
 private:
     std::vector<Class> classes;
+    std::vector<Link> links;
 };
 
 

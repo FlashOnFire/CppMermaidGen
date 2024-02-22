@@ -10,4 +10,9 @@ add_executable(CppMermaidGen src/main.cpp
         src/Function.cpp
         src/Function.h
         src/ClassDiagram.cpp
-        src/ClassDiagram.h)
+        src/ClassDiagram.h
+        src/Link.cpp
+        src/Link.h
+        src/LinkType.h
+        src/Field.cpp
+        src/Field.h)

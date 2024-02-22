@@ -3,6 +3,22 @@
 #include <fstream>
 #include <utility>
 
+std::vector<Field> Class::getPrivateFields() const {
+    return private_fields;
+}
+
+std::vector<Field> Class::getPublicFields() const {
+    return public_fields;
+}
+
+std::vector<Function> Class::getPrivateFunctions() const {
+    return private_functions;
+}
+
+std::vector<Function> Class::getPublicFunctions() const {
+    return public_functions;
+}
+
 Class::Class(std::string name) {
     this->name = std::move(name);
 }
@@ -23,12 +39,13 @@ void Class::setSuperclassName(const std::string& superclass_name) {
     this->superclass_name = superclass_name;
 }
 
-void Class::addPrivateField(std::string str) {
-    private_fields.push_back("- " + str);
-}
+void Class::addField(const Field& field) {
+    if (field.getVisibility()) {
+        private_fields.push_back(field);
+    } else {
+        public_fields.push_back(field);
+    }
 
-void Class::addPublicField(std::string str) {
-    public_fields.push_back("+ " + str);
 }
 
 void Class::addPrivateFunction(const std::string& name, const std::string& return_type) {
@@ -44,12 +61,12 @@ std::string Class::generateMermaid() const {
 
     str.append("    class " + name + " {" + "\n");
 
-    for (const auto& s: public_fields) {
-        str.append("      " + s + "\n");
+    for (const auto& f: public_fields) {
+        str.append("      " + f.generateMermaid() + "\n");
     }
 
-    for (const auto& s: private_fields) {
-        str.append("      " + s + "\n");
+    for (const auto& f: private_fields) {
+        str.append("      " + f.generateMermaid() + "\n");
     }
 
     for (const auto& f: public_functions) {

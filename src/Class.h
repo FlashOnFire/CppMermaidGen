@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 
+#include "Field.h"
 #include "Function.h"
 
 
@@ -10,15 +11,21 @@ class Class {
 public:
     Class() = default;
 
+    [[nodiscard]] std::vector<Field> getPrivateFields() const;
+
+    [[nodiscard]] std::vector<Field> getPublicFields() const;
+
+    [[nodiscard]] std::vector<Function> getPrivateFunctions() const;
+
+    [[nodiscard]] std::vector<Function> getPublicFunctions() const;
+
     explicit Class(std::string name);
 
     void setName(std::string name);
 
     void setSuperclassName(const std::string& superclass_name);
 
-    void addPrivateField(std::string str);
-
-    void addPublicField(std::string str);
+    void addField(const Field& field);
 
     void addPrivateFunction(const std::string& name, const std::string& return_type);
 
@@ -37,8 +44,8 @@ public:
     [[nodiscard]] std::string get_superclass_name() const;
 
 private:
-    std::vector<std::string> private_fields;
-    std::vector<std::string> public_fields;
+    std::vector<Field> private_fields;
+    std::vector<Field> public_fields;
     std::vector<Function> private_functions;
     std::vector<Function> public_functions;
 };

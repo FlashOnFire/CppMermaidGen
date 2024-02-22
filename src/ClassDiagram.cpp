@@ -1,6 +1,7 @@
 #include "ClassDiagram.h"
 
 #include <fstream>
+#include <iostream>
 
 #include "Utils.h"
 
@@ -68,7 +69,7 @@ ClassDiagram::ClassDiagram(std::vector<std::string> files) {
 
             if (str.at(str.length() - 1) == ';') {
                 str = str.substr(0, str.length() - 1);
-            } else if (str.at(str.length() - 1) != '{' && str.at(str.length() - 1) != ':' ) {
+            } else if (str.at(str.length() - 1) != '{' && str.at(str.length() - 1) != ':') {
                 line_not_ended = true;
                 continue;
             }
@@ -116,10 +117,12 @@ ClassDiagram::ClassDiagram(std::vector<std::string> files) {
                             c.addPublicFunction(m[2], m[1]);
                     }
                 } else {
-                    if (cur_visibility)
-                        c.addPrivateField(str);
-                    else
-                        c.addPublicField(str);
+                    if (auto i = str.find(' '); i != std::string::npos) {
+                        c.addField(Field(cur_visibility, str.substr(0, i), str.substr(i, str.length())));
+                    } else {
+                        std::cout << "????? what even is this thing " << std::endl;
+                        std::cout << str << std::endl;
+                    }
                 }
             }
             //std::cout << str << std::endl;;
@@ -128,11 +131,72 @@ ClassDiagram::ClassDiagram(std::vector<std::string> files) {
 
         classes.push_back(c);
     }
+
+    for (const auto& class1: classes) {
+        for (const auto& class2: classes) {
+            if (class1.get_superclass_name() == class2.getName()) {
+                links.emplace_back(class1.getName(), class2.getName(), LinkType::Classic);
+                continue;
+            }
+
+            bool found = false;
+
+            for (const auto& public_field: class1.getPublicFields()) {
+                if (public_field.getType() == class2.getName() || public_field.getType().find("~" + class2.getName() + "~") != std::string::npos) {
+                    links.emplace_back(class1.getName(), class2.getName(), LinkType::Classic);
+
+                    found = true;
+
+                    break;
+                }
+            }
+
+            if (!found) {
+                for (const auto& private_field: class1.getPrivateFields()) {
+                    if (private_field.getType() == class2.getName() || private_field.getType().find("~" + class2.getName() + "~") != std::string::npos) {
+                        links.emplace_back(class1.getName(), class2.getName(), LinkType::Classic);
+
+                        found = true;
+
+                        break;
+                    }
+                }
+            }
+            /*
+            if (!found) {
+                for (auto public_functions: class1.getPublicFunctions()) {
+                    if (public_functions.getName() == class2.getName()) {
+                        links.emplace_back(class1.getName(), class2.getName(), LinkType::Classic);
+
+                        found = true;
+
+                        break;
+                    }
+                }
+            }
+
+            if (!found) {
+                for (auto private_functions: class1.getPublicFunctions()) {
+                    if (private_functions.get() == class2.getName()) {
+                        links.emplace_back(class1.getName(), class2.getName(), LinkType::Classic);
+
+                        found = true;
+
+                        break;
+                    }
+                }
+            }*/
+        }
+    }
 }
 
 std::string ClassDiagram::generateMermaid() const {
     std::string output;
     output.append("classDiagram\n");
+
+    for (const auto& link : links) {
+        output.append(link.generateMermaid());
+    }
 
     for (const auto& class_: classes) {
         output.append(class_.generateMermaid());

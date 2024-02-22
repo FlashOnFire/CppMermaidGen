@@ -18,7 +18,6 @@ int main() {
 
     std::vector<std::string> filenames;
 
-    int i = 0;
     for (const auto& entry: fs::recursive_directory_iterator(path)) {
         if (entry.is_regular_file() && entry.path().has_extension() && entry.path().extension() == ".h") {
             if (std::find(blacklist.begin(), blacklist.end(), entry.path().filename()) == blacklist.end()) {

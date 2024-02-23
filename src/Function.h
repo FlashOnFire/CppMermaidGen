@@ -2,17 +2,21 @@
 #define FUNCTION_H
 #include <string>
 
+#include "Visibility.h"
+
 
 class Function {
-private:
-    bool visibility;
-    std::string name;
-    std::string return_type;
-
 public:
-    Function(bool visibility, std::string  name, std::string  return_type);
+    Function(Visibility visibility, std::string name, std::string  return_type, bool is_virtual);
+
+    [[nodiscard]] Visibility getVisibility() const;
 
     [[nodiscard]] std::string toMermaidStr() const;
+private:
+    Visibility visibility;
+    std::string name;
+    std::string return_type;
+    bool is_virtual;
 };
 
 

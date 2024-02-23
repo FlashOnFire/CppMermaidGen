@@ -2,19 +2,21 @@
 #define FIELD_H
 #include <string>
 
+#include "Visibility.h"
+
 
 class Field {
 protected:
-    bool visibility;
+    Visibility visibility;
     std::string type;
     std::string name;
 
 public:
     virtual ~Field() = default;
 
-    Field(bool visibility, std::string type, std::string name);
+    Field(Visibility visibility, std::string type, std::string name);
 
-    [[nodiscard]] bool getVisibility() const;
+    [[nodiscard]] Visibility getVisibility() const;
 
     [[nodiscard]] std::string getName() const;
 

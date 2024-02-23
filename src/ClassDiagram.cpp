@@ -5,6 +5,7 @@
 
 #include "EnumField.h"
 #include "Utils.h"
+#include "Visibility.h"
 
 ClassDiagram::ClassDiagram(const std::vector<std::string>& files) {
     for (const auto& filename: files) {
@@ -12,7 +13,7 @@ ClassDiagram::ClassDiagram(const std::vector<std::string>& files) {
 
         std::string str;
         bool skip = false;
-        bool cur_visibility = true;
+        auto cur_visibility = Visibility::Private;
         bool line_not_ended = false;
         bool in_enum = false;
 
@@ -91,6 +92,8 @@ ClassDiagram::ClassDiagram(const std::vector<std::string>& files) {
                 class_vector.push_back(c);
                 c->setName(m[1]);
 
+                cur_visibility = Visibility::Public;
+
                 in_enum = true;
                 continue;
             } else if (std::regex_match(str, m, class_regex)) {
@@ -99,12 +102,16 @@ ClassDiagram::ClassDiagram(const std::vector<std::string>& files) {
                 class_vector.push_back(c);
                 class_or_struct = true;
 
+                cur_visibility = Visibility::Private;
+
                 in_enum = false;
             } else if (std::regex_match(str, m, struct_regex)) {
                 class_or_struct = true;
                 c = std::make_shared<Class>();
                 c->setClassType(ClassType::Struct);
                 class_vector.push_back(c);
+
+                cur_visibility = Visibility::Public;
 
                 in_enum = false;
             }
@@ -120,10 +127,13 @@ ClassDiagram::ClassDiagram(const std::vector<std::string>& files) {
 
                 continue;
             } else if (str.find("public") != std::string::npos) {
-                cur_visibility = false;
+                cur_visibility = Visibility::Public;
                 continue;
             } else if (str.find("private") != std::string::npos) {
-                cur_visibility = true;
+                cur_visibility = Visibility::Private;
+                continue;
+            } else if (str.find("protected") != std::string::npos) {
+                cur_visibility = Visibility::Protected;
                 continue;
             } else {
                 if (auto i = str.find(" ="); i != std::string::npos) {
@@ -139,19 +149,42 @@ ClassDiagram::ClassDiagram(const std::vector<std::string>& files) {
                     }
 
                     replace_all(str, "[[nodiscard]]", "");
+
+                    bool is_virtual = false;
+
+                    if (str.find("virtual") != std::string::npos) {
+                        is_virtual = true;
+                        replace_all(str, "virtual", "");
+                    }
+
                     trim(str);
 
                     if (std::regex_match(str, m, function_return_regex)) {
-                        //str = std::string(m[2]).append(" ").append(m[1]);
-                        if (cur_visibility)
-                            c->addPrivateFunction(m[2], m[1]);
-                        else
-                            c->addPublicFunction(m[2], m[1]);
+                        c->addFunction(Function(cur_visibility, m[2], m[1], is_virtual));
+                    } else {
+                        auto destructor_regex = std::string(function_destructor_regex);
+
+                        destructor_regex.replace(destructor_regex.find("class"), 5, c->getName());
+
+                        auto regex = std::regex(destructor_regex);
+
+                        if (std::regex_match(str, m, regex)) {
+                            c->addFunction(Function(cur_visibility, m[2], m[1], is_virtual));
+                        } else {
+                            auto constructor_regex = std::string(function_constructor_regex);
+                            constructor_regex.replace(constructor_regex.find("class"), 5, c->getName());
+                            regex = std::regex(constructor_regex);
+
+                            if (std::regex_match(str, m, regex)) {
+                                c->addFunction(Function(cur_visibility, m[2], m[1], is_virtual));
+                            }
+                        }
                     }
                 } else {
                     if (auto i = str.find(' '); i != std::string::npos) {
                         if (c != nullptr)
-                            c->addField(std::make_shared<Field>(cur_visibility, str.substr(0, i), str.substr(i+1, str.length())));
+                            c->addField(std::make_shared<Field>(cur_visibility, str.substr(0, i),
+                                                                str.substr(i + 1, str.length())));
                     } else if (in_enum) {
                         c->addField(std::move(std::make_shared<EnumField>(str)));
                     } else {

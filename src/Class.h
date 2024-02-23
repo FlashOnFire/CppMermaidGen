@@ -29,9 +29,7 @@ public:
 
     void addField(const std::shared_ptr<Field>& field);
 
-    void addPrivateFunction(const std::string& name, const std::string& return_type);
-
-    void addPublicFunction(const std::string& name, const std::string& return_type);
+    void addFunction(const Function& function);
 
     [[nodiscard]] std::string getName() const;
 
@@ -48,8 +46,10 @@ private:
 
     std::vector<std::shared_ptr<Field>> private_fields;
     std::vector<std::shared_ptr<Field>> public_fields;
+    std::vector<std::shared_ptr<Field>> protected_fields;
     std::vector<Function> private_functions;
     std::vector<Function> public_functions;
+    std::vector<Function> protected_functions;
 };
 
 

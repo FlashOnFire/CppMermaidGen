@@ -18,4 +18,5 @@ add_executable(CppMermaidGen src/main.cpp
         src/Field.h
         src/ClassType.h
         src/EnumField.cpp
-        src/EnumField.h)
+        src/EnumField.h
+        src/Visibility.h)

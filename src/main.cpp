@@ -22,7 +22,9 @@ int main() {
         if (entry.is_regular_file() && entry.path().has_extension() && entry.path().extension() == ".h") {
             if (std::find(blacklist.begin(), blacklist.end(), entry.path().filename()) == blacklist.end()) {
                 std::cout << "Adding " << entry.path().filename() << "\n";
-                filenames.push_back(entry.path());
+
+                if (entry.path().filename() == "BasicScreen.h")
+                    filenames.push_back(entry.path());
             } else {
                 std::cout << "Not adding blacklisted " << entry.path().filename() << std::endl;
             }

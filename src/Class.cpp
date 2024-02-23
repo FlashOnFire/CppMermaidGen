@@ -44,20 +44,23 @@ void Class::setSuperclassName(const std::string& superclass_name) {
 }
 
 void Class::addField(const std::shared_ptr<Field>& field) {
-    if (field->getVisibility()) {
+    if (field->getVisibility() == Visibility::Private) {
         private_fields.push_back(field);
-    } else {
+    } else if (field->getVisibility() == Visibility::Public) {
         public_fields.push_back(field);
+    } else {
+        protected_fields.push_back(field);
     }
-
 }
 
-void Class::addPrivateFunction(const std::string& name, const std::string& return_type) {
-    private_functions.emplace_back(true, name, return_type);
-}
-
-void Class::addPublicFunction(const std::string& name, const std::string& return_type) {
-    public_functions.emplace_back(false, name, return_type);
+void Class::addFunction(const Function& function) {
+    if (function.getVisibility() == Visibility::Private) {
+        private_functions.push_back(function);
+    } else if (function.getVisibility() == Visibility::Public) {
+        public_functions.push_back(function);
+    } else {
+        protected_functions.push_back(function);
+    }
 }
 
 std::string Class::generateMermaid() const {
@@ -73,11 +76,18 @@ std::string Class::generateMermaid() const {
         str.append("      " + f->generateMermaid() + "\n");
     }
 
+    for (const auto& f: protected_fields) {
+        str.append("      " + f->generateMermaid() + "\n");
+    }
+
     for (const auto& f: public_functions) {
         str.append("      " + f.toMermaidStr() + "\n");
     }
 
     for (const auto& f: private_functions) {
+        str.append("      " + f.toMermaidStr() + "\n");
+    }
+    for (const auto& f: protected_functions) {
         str.append("      " + f.toMermaidStr() + "\n");
     }
 

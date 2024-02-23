@@ -1,12 +1,12 @@
 #include "Field.h"
 
-Field::Field(const bool visibility, std::string type, std::string name)
+Field::Field(const Visibility visibility, std::string type, std::string name)
     : visibility(visibility),
       type(std::move(type)),
       name(std::move(name)) {
 }
 
-bool Field::getVisibility() const {
+Visibility Field::getVisibility() const {
     return visibility;
 }
 
@@ -19,5 +19,14 @@ std::string Field::getName() const {
 }
 
 std::string Field::generateMermaid() const {
-    return std::string((visibility) ? "-" : "+").append(" ").append(type).append(" ").append(name);
+    std::string prefix;
+
+    if (visibility == Visibility::Private)
+        prefix = "-";
+    else if (visibility == Visibility::Public)
+        prefix = "+";
+    else if (visibility == Visibility::Protected)
+        prefix = "jspleprefix";
+
+    return prefix.append(" ").append(type).append(" ").append(name);
 }

@@ -1,8 +1,10 @@
 #ifndef CLASS_H
 #define CLASS_H
+#include <memory>
 #include <string>
 #include <vector>
 
+#include "ClassType.h"
 #include "Field.h"
 #include "Function.h"
 
@@ -11,9 +13,9 @@ class Class {
 public:
     Class() = default;
 
-    [[nodiscard]] std::vector<Field> getPrivateFields() const;
+    [[nodiscard]] std::vector<std::shared_ptr<Field>> getPrivateFields() const;
 
-    [[nodiscard]] std::vector<Field> getPublicFields() const;
+    [[nodiscard]] std::vector<std::shared_ptr<Field>> getPublicFields() const;
 
     [[nodiscard]] std::vector<Function> getPrivateFunctions() const;
 
@@ -25,7 +27,7 @@ public:
 
     void setSuperclassName(const std::string& superclass_name);
 
-    void addField(const Field& field);
+    void addField(const std::shared_ptr<Field>& field);
 
     void addPrivateFunction(const std::string& name, const std::string& return_type);
 
@@ -33,19 +35,19 @@ public:
 
     [[nodiscard]] std::string getName() const;
 
-    [[nodiscard]] std::string generateMermaid() const;
+    [[nodiscard]] std::string get_superclass_name() const;
 
+    void setClassType(ClassType class_type);
+
+    [[nodiscard]] std::string generateMermaid() const;
 
 private:
     std::string name;
     std::string superclass_name;
+    ClassType class_type;
 
-public:
-    [[nodiscard]] std::string get_superclass_name() const;
-
-private:
-    std::vector<Field> private_fields;
-    std::vector<Field> public_fields;
+    std::vector<std::shared_ptr<Field>> private_fields;
+    std::vector<std::shared_ptr<Field>> public_fields;
     std::vector<Function> private_functions;
     std::vector<Function> public_functions;
 };

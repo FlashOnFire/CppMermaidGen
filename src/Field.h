@@ -4,12 +4,15 @@
 
 
 class Field {
+protected:
     bool visibility;
     std::string type;
     std::string name;
 
 public:
-    Field(bool visibility, std::string  name, std::string  type);
+    virtual ~Field() = default;
+
+    Field(bool visibility, std::string type, std::string name);
 
     [[nodiscard]] bool getVisibility() const;
 
@@ -17,9 +20,8 @@ public:
 
     [[nodiscard]] std::string getType() const;
 
-    [[nodiscard]] std::string generateMermaid() const;
+    [[nodiscard]] virtual std::string generateMermaid() const;
 };
-
 
 
 #endif //FIELD_H

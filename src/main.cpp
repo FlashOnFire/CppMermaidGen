@@ -9,9 +9,9 @@ namespace fs = std::filesystem;
 
 int main() {
     std::string path = "/home/flashonfire/CLionProjects/Rashnawa/src/";
-    std::vector<std::string> blacklist = {
-        "Events.h", "Defines.h", "StringHasher.h", "TriggerBox.h", "OptionDataStructs.h", "EntityBehaviorType.h",
-        "Entities.h", "Screens.h", "OptionsCategories.h", "Keybinds.h"
+    std::vector<std::string> blacklist = { "TriggerBox.h", "Defines.h", "StringHasher.h", "Events.h"
+        //"OptionDataStructs.h", "EntityBehaviorType.h",
+        //"Entities.h", "Screens.h", "OptionsCategories.h", "Keybinds.h"
 
     };
 

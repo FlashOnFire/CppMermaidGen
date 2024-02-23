@@ -9,10 +9,8 @@ namespace fs = std::filesystem;
 
 int main() {
     std::string path = "/home/flashonfire/CLionProjects/Rashnawa/src/";
-    std::vector<std::string> blacklist = { "TriggerBox.h", "Defines.h", "StringHasher.h", "Events.h"
-        //"OptionDataStructs.h", "EntityBehaviorType.h",
-        //"Entities.h", "Screens.h", "OptionsCategories.h", "Keybinds.h"
-
+    std::vector<std::string> blacklist = {
+        "TriggerBox.h", "Defines.h", "StringHasher.h", "Events.h"
     };
 
 
@@ -23,8 +21,7 @@ int main() {
             if (std::find(blacklist.begin(), blacklist.end(), entry.path().filename()) == blacklist.end()) {
                 std::cout << "Adding " << entry.path().filename() << "\n";
 
-                if (entry.path().filename() == "BasicScreen.h")
-                    filenames.push_back(entry.path());
+                filenames.push_back(entry.path());
             } else {
                 std::cout << "Not adding blacklisted " << entry.path().filename() << std::endl;
             }

@@ -38,7 +38,11 @@ ClassDiagram::ClassDiagram(const std::vector<std::string>& files) {
 
             replace_all(str, "final", "");
             replace_all(str, "explicit", "");
-            replace_all(str, "  ", " ");
+
+            size_t i;
+            while (i = str.find("  "), i != std::string::npos) {
+                str.replace(i, 2, " ");
+            }
 
             if (auto i = str.find("//"); i != std::string::npos) {
                 str = str.substr(0, i);
@@ -72,11 +76,13 @@ ClassDiagram::ClassDiagram(const std::vector<std::string>& files) {
                 continue;
             } else if (str.find('}') == 0) {
                 continue;
+            } else if (str.find("= delete") != std::string::npos) {
+                continue;
             }
 
-            if (str.at(str.length() - 1) == ';') {
+            if (str.at(str.length() - 1) == ';' && str.length() >= 2 && str.at(str.length() -2) != ')') {
                 str = str.substr(0, str.length() - 1);
-            } else if (str.at(str.length() - 1) != '{' && str.at(str.length() - 1) != ':' && !in_enum) {
+            } else if (str.at(str.length() - 1) != '{' && str.at(str.length() - 1) != ':' && !in_enum && str.at(str.length()-1) != ';') {
                 line_not_ended = true;
                 continue;
             }
@@ -84,7 +90,6 @@ ClassDiagram::ClassDiagram(const std::vector<std::string>& files) {
             std::smatch m;
 
             bool class_or_struct = false;
-
 
             if (std::regex_match(str, m, enum_regex)) {
                 c = std::make_shared<Class>();
@@ -136,14 +141,15 @@ ClassDiagram::ClassDiagram(const std::vector<std::string>& files) {
                 cur_visibility = Visibility::Protected;
                 continue;
             } else {
-                if (auto i = str.find(" ="); i != std::string::npos) {
-                    str = str.substr(0, i);
-                }
-
                 replace_all(str, "<", "~");
                 replace_all(str, ">", "~");
 
-                if (str.find('(') != std::string::npos && str.find(')') != std::string::npos) {
+                bool isFunction = false;
+
+                auto firstParanthesis = str.find('(');
+
+                if (firstParanthesis != std::string::npos && str.substr(0, firstParanthesis).find("std::function") ==
+                    std::string::npos && str.find(')') != std::string::npos) {
                     if (auto i = str.rfind(" const"); i != std::string::npos && i == str.length() - 6) {
                         str = str.substr(0, i);
                     }
@@ -155,38 +161,88 @@ ClassDiagram::ClassDiagram(const std::vector<std::string>& files) {
                     if (str.find("virtual") != std::string::npos) {
                         is_virtual = true;
                         replace_all(str, "virtual", "");
+                    } else if (str.find("override") != std::string::npos) {
+                        is_virtual = true;
+                        replace_all(str, "override", "");
+                    }
+
+
+                    if (auto j = str.find('='); j != std::string::npos && str.at(str.length()-1) != ')') {
+                        str = str.substr(0, j);
                     }
 
                     trim(str);
 
                     if (std::regex_match(str, m, function_return_regex)) {
-                        c->addFunction(Function(cur_visibility, m[2], m[1], is_virtual));
+                        std::smatch match2;
+
+                        if (auto wo_returntype = std::string(m[2]); std::regex_search(wo_returntype, match2, function_args_regex)) {
+                            c->addFunction(Function(cur_visibility, match2[1], match2[2], m[1], is_virtual));
+                        } else {
+                            std::cout << "Wtf is happening" << std::endl;
+                                std::cout << m[2] << std::endl;
+                        }
                     } else {
                         auto destructor_regex = std::string(function_destructor_regex);
 
                         destructor_regex.replace(destructor_regex.find("class"), 5, c->getName());
 
-                        auto regex = std::regex(destructor_regex);
+                        if (auto regex = std::regex(destructor_regex); std::regex_match(str, m, regex)) {
+                            std::smatch match2;
 
-                        if (std::regex_match(str, m, regex)) {
-                            c->addFunction(Function(cur_visibility, m[2], m[1], is_virtual));
+                            if (auto wo_returntype = std::string(m[2]); std::regex_search(wo_returntype, match2, function_args_regex)) {
+                                c->addFunction(Function(cur_visibility, match2[1], match2[2], m[1], is_virtual));
+                            } else {
+                                std::cout << "Wtf is happening" << std::endl;
+                            }
                         } else {
                             auto constructor_regex = std::string(function_constructor_regex);
                             constructor_regex.replace(constructor_regex.find("class"), 5, c->getName());
                             regex = std::regex(constructor_regex);
 
                             if (std::regex_match(str, m, regex)) {
-                                c->addFunction(Function(cur_visibility, m[2], m[1], is_virtual));
+                                std::smatch match2;
+
+                                if (auto wo_returntype = std::string(m[2]); std::regex_search(wo_returntype, match2, function_args_regex)) {
+                                    c->addFunction(Function(cur_visibility, match2[1], match2[2], m[1], is_virtual));
+                                } else {
+                                    std::cout << "Wtf is happening" << std::endl;
+                                }
                             }
                         }
                     }
                 } else {
-                    if (auto i = str.find(' '); i != std::string::npos) {
-                        if (c != nullptr)
+                    if (str.at(str.length()-1) == ';') {
+                        str = str.substr(0, str.length()-1);
+                    }
+
+                    trim(str);
+
+                    if (str.empty())
+                        return;
+
+
+                    if (in_enum) {
+                        if (auto i = str.find(" ="); i != std::string::npos) {
+                            str = str.substr(0, i);
+                        }
+
+                        if (str.at(str.length() -1) == ',') {
+                            str = str.substr(0, str.length()-1);
+                        }
+
+                        if (c != nullptr) {
+                            c->addField(std::move(std::make_shared<EnumField>(str)));
+                        }
+                    } else if (auto i = str.find(' '); i != std::string::npos) {
+                        if (auto i = str.find(" ="); i != std::string::npos) {
+                            str = str.substr(0, i);
+                        }
+
+                        if (c != nullptr) {
                             c->addField(std::make_shared<Field>(cur_visibility, str.substr(0, i),
                                                                 str.substr(i + 1, str.length())));
-                    } else if (in_enum) {
-                        c->addField(std::move(std::make_shared<EnumField>(str)));
+                        }
                     } else {
                         std::cout << "????? what even is this thing " << std::endl;
                         std::cout << str << std::endl;
@@ -204,8 +260,11 @@ ClassDiagram::ClassDiagram(const std::vector<std::string>& files) {
 
     for (const auto& class1: classes) {
         for (const auto& class2: classes) {
+            if (class1->getName() == class2->getName())
+                continue;
+
             if (class1->get_superclass_name() == class2->getName()) {
-                links.emplace_back(class1->getName(), class2->getName(), LinkType::Classic);
+                links.emplace_back(class1->getName(), class2->getName(), LinkType::Superclass);
                 continue;
             }
 
@@ -234,11 +293,11 @@ ClassDiagram::ClassDiagram(const std::vector<std::string>& files) {
                     }
                 }
             }
-            /*
+
             if (!found) {
-                for (auto public_functions: class1.getPublicFunctions()) {
-                    if (public_functions.getName() == class2.getName()) {
-                        links.emplace_back(class1.getName(), class2.getName(), LinkType::Classic);
+                for (const auto& public_functions: class1->getPublicFunctions()) {
+                    if (public_functions.getArgs().find(class2->getName()) != std::string::npos) {
+                        links.emplace_back(class1->getName(), class2->getName(), LinkType::Indirect);
 
                         found = true;
 
@@ -248,16 +307,16 @@ ClassDiagram::ClassDiagram(const std::vector<std::string>& files) {
             }
 
             if (!found) {
-                for (auto private_functions: class1.getPublicFunctions()) {
-                    if (private_functions.get() == class2.getName()) {
-                        links.emplace_back(class1.getName(), class2.getName(), LinkType::Classic);
+                for (const auto& private_functions: class1->getPublicFunctions()) {
+                    if (private_functions.getArgs().find(class2->getName()) != std::string::npos) {
+                        links.emplace_back(class1->getName(), class2->getName(), LinkType::Indirect);
 
                         found = true;
 
                         break;
                     }
                 }
-            }*/
+            }
         }
     }
 }

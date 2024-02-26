@@ -26,7 +26,7 @@ std::string Field::generateMermaid() const {
     else if (visibility == Visibility::Public)
         prefix = "+";
     else if (visibility == Visibility::Protected)
-        prefix = "jspleprefix";
+        prefix = "#";
 
     return prefix.append(" ").append(type).append(" ").append(name);
 }

@@ -10,6 +10,12 @@ std::string Link::generateMermaid() const {
 
     switch (type) {
         case LinkType::Classic:
+            output.append("-->");
+            break;
+        case LinkType::Indirect:
+            output.append("..>");
+            break;
+        case LinkType::Superclass:
             output.append("--|>");
             break;
     }

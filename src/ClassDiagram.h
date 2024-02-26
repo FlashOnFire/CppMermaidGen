@@ -9,7 +9,8 @@
 const std::regex enum_regex("(?:enum class) (.*) \\{");
 const std::regex class_regex("(?:class) (.*) \\{");
 const std::regex struct_regex("(?:struct) (.*) \\{");
-const std::regex function_return_regex("(.*) (.*\\(.*\\).*)");
+const std::regex function_return_regex(R"((\w*) (.*\(.*\).*))");
+const std::regex function_args_regex(R"((\w+)\((.*)\))");
 const std::string function_destructor_regex = "(.*)(~class\\(.*\\).*)";
 const std::string function_constructor_regex = "(.*)(class\\(.*\\).*)";
 const std::regex superclass_regex("(.*) : (?:public|protected|private) (.*)");

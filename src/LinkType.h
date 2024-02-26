@@ -3,6 +3,8 @@
 
 enum class LinkType {
     Classic,
+    Indirect,
+    Superclass
 };
 
 #endif //LINKTYPE_H

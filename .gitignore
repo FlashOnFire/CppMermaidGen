@@ -2,3 +2,5 @@ cmake-build-debug
 .idea
 out/**
 !out/.gitkeep
+.direnv
+result
